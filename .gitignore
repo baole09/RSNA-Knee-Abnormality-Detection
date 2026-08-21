@@ -25,3 +25,6 @@ venv/
 # OS / editor
 .DS_Store
 .vscode/
+
+#image
+*.png
