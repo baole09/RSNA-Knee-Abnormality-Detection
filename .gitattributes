@@ -1,3 +1,4 @@
 *.ipynb filter=strip-notebook-output
 *.pdf -diff
 *.pptx -diff
+*.zip filter=lfs diff=lfs merge=lfs -text
