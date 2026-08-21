@@ -1,0 +1,27 @@
+# Data (không commit dữ liệu gốc / dẫn xuất lớn)
+dataset/rsna_knee/*
+!dataset/rsna_knee/.gitkeep
+*.dcm
+*.zip
+
+# Credentials — TUYỆT ĐỐI không commit
+kaggle.json
+.kaggle/
+*.env
+
+# Checkpoint / artifact model
+*.pt
+*.pth
+*.ckpt
+artifacts/
+
+# Python / Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+.vscode/
