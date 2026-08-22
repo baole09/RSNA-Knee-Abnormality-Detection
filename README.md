@@ -10,46 +10,75 @@ Cấu trúc thư mục mô phỏng theo repo giảng dạy `dntai_chonnam_ai_the
 - Dữ liệu: > 5.000 knee MRI exam, ~16–19 site trên thế giới, báo cáo X-quang bằng 12 ngôn ngữ khác nhau.
 - **Chất lượng nhãn (quan trọng cho phần indexing/leakage check):** theo một baseline cộng đồng công khai trên GitHub (nguồn thứ cấp, cần tự xác minh lại khi có `train.csv` thật), chỉ khoảng 58/4.407 training study có gold label từ radiologist; phần lớn còn lại chỉ có report-derived weak label, độ khớp với gold label ước tính ~82% — nghĩa là **không nên coi report-derived label có độ tin cậy ngang gold label** khi index hoặc split dữ liệu.
 
-## Cấu trúc thư mục
+## Cấu trúc hiện tại
 
-```
-RSNA-Knee-Abnormality-Detection/
-├── README.md
+```text
+.
+├── 01. rsna_baseline_v1.ipynb  # khám phá dữ liệu và baseline ban đầu
+├── index-data.ipynb            # lập chỉ mục metadata / ảnh
+├── RSNA_data.py                # lớp đọc metadata và index dữ liệu
 ├── requirements.txt
-├── .gitignore
-├── .gitattributes
-├── data/                          # ghi chú nguồn dữ liệu, KHÔNG chứa file DICOM gốc (quá lớn)
-│   └── README.md
-├── dataset/
-│   └── rsna_knee/                 # nơi mount/tải dữ liệu thật về local (đã .gitignore, chỉ giữ .gitkeep)
-├── images/                        # hình minh hoạ dùng trong notebook/README
-├── rsna_data.py                   # hàm load dữ liệu (metadata CSV, DICOM path, report)
-├── rsna_lib.py                    # hàm tiện ích dùng chung (kiểm tra duplicate, patient-level split, tóm tắt chất lượng nhãn)
-├── 01. rsna_eda_metadata.ipynb           # khảo sát cấu trúc thư mục & metadata thật (PHASE 0 — không đoán schema)
-├── 02. rsna_dicom_indexing.ipynb         # xây file index (manifest) từ DICOM + metadata
-├── 03. rsna_label_quality.ipynb          # phân tích gold vs weak label, kiểm tra leakage patient/study-level
-└── 04. rsna_baseline_model.ipynb         # baseline model (đơn giản trước, theo nguyên tắc baseline-first)
+├── data/
+│   ├── train.csv
+│   ├── train_series.csv
+│   ├── test.csv
+│   ├── test_series.csv
+│   └── sample_submission.csv
+└── *.png                       # ảnh kết quả minh họa từ notebook
 ```
 
-## Setup
+Dữ liệu DICOM và các file cache lớn không nên commit vào Git. Quy tắc loại trừ
+được khai báo trong `.gitignore`.
+
+## Cài đặt
+
+Windows PowerShell:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m pip install opencv-python  # RSNA_data.py dùng module cv2
+```
+
+Linux/macOS:
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate       # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-
-# Tải dữ liệu (cần đã accept rules cuộc thi + cấu hình ~/.kaggle/kaggle.json)
-kaggle competitions download -c rsna-knee-abnormality-detection -p dataset/rsna_knee
-unzip dataset/rsna_knee/*.zip -d dataset/rsna_knee
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m pip install opencv-python
 ```
 
-## Ghi chú reproducibility
+Mở workspace bằng VS Code, chọn interpreter `.venv`, sau đó chạy các cell trong
+`index-data.ipynb` hoặc `01. rsna_baseline_v1.ipynb` theo thứ tự.
 
-- Random seed cố định trong `rsna_lib.py` (mặc định 42, có thể override).
-- Mọi số liệu về schema thật (tên cột, cấu trúc thư mục DICOM) PHẢI được xác nhận trong `01. rsna_eda_metadata.ipynb` trước khi dùng ở các notebook sau — không hard-code giả định.
-- File index sinh ra ở bước 02 nên được coi là DATA-001 trong traceability, ghi rõ ngày tạo + phiên bản dataset.
+## Dữ liệu
 
-## Nguồn tham khảo
+Các CSV mẫu đã có trong `data/`. Với dữ liệu đầy đủ từ Kaggle, tải dữ liệu sau
+khi đã chấp nhận điều khoản cuộc thi và cấu hình Kaggle API:
 
-- Kaggle competition: https://www.kaggle.com/competitions/rsna-knee-abnormality-detection
-- RSNA thông báo chính thức: https://www.rsna.org/artificial-intelligence/ai-image-challenge/knee-mri-ai-challenge
+```bash
+kaggle competitions download -c rsna-knee-abnormality-detection
+```
+
+`RSNA_DATASET` mặc định tìm `train.csv` và `train_series.csv` trong `root_path`.
+Khi CSV nằm trong thư mục `data/`, truyền `root_path="data"` hoặc truyền đường
+dẫn CSV tương ứng. Thư mục ảnh tùy chọn có dạng:
+
+```text
+train_images/<StudyInstanceUID>/<SeriesInstanceUID>/<image files>
+```
+
+## Quy trình
+
+1. Đọc và kiểm tra metadata trong `data/`.
+2. Chạy `index-data.ipynb` để tạo index study/series và, nếu cần, index ảnh.
+
+Khi chia dữ liệu, dùng split ở cấp study/patient để hạn chế leakage. Các nhãn
+thiếu được giữ dưới dạng `NaN`; cần kiểm tra chất lượng nhãn trước khi huấn luyện.
+
+## Tham khảo
+
+- [Kaggle: RSNA Knee Abnormality Detection](https://www.kaggle.com/competitions/rsna-knee-abnormality-detection)
+- [RSNA Knee MRI AI Challenge](https://www.rsna.org/artificial-intelligence/ai-image-challenge/knee-mri-ai-challenge)
