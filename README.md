@@ -57,7 +57,6 @@ Mở workspace bằng VS Code, chọn interpreter `.venv`, sau đó chạy các 
 
 Các CSV mẫu đã có trong `data/`. Với dữ liệu đầy đủ từ Kaggle, tải dữ liệu sau
 khi đã chấp nhận điều khoản cuộc thi và cấu hình Kaggle API:
-
 ```bash
 kaggle competitions download -c rsna-knee-abnormality-detection
 ```
@@ -76,7 +75,7 @@ train_images/<StudyInstanceUID>/<SeriesInstanceUID>/<image files>
 2. Chạy `index-data.ipynb` để tạo index study/series và, nếu cần, index ảnh.
 
 Khi chia dữ liệu, dùng split ở cấp study/patient để hạn chế leakage. Các nhãn
-thiếu được giữ dưới dạng `NaN`; cần kiểm tra chất lượng nhãn trước khi huấn luyện.
+thiếu được giữ dưới dạng `NaN`; cần kiểm tra chất lượng nhãn trước khi huấn luyện
 
 ## Tham khảo
 
